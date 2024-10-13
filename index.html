@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSA Search Engine</title>
+    
+    <!-- Link to Chart.js for charting -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Add some unique styling for the page -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f4f4f9 50%, #d1e8ff 50%);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-top: 20px;
+            color: #3a7bd5;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"] {
+            width: 320px;
+            padding: 12px;
+            margin-right: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3a7bd5;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(58, 123, 213, 0.3);
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #3a7bd5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #2f66b0;
+            transform: translateY(-2px);
+        }
+
+        #results {
+            list-style-type: none;
+            padding: 0;
+            width: 80%;
+            margin-top: 30px;
+        }
+
+        #results li {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        #results li:hover {
+            transform: scale(1.02);
+        }
+
+        #results p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        strong {
+            color: #3a7bd5;
+        }
+
+        #similarityChart {
+            margin-top: 30px;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        h2 {
+            margin-top: 40px;
+            font-size: 24px;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>LSA Search Engine</h1>
+    
+    <!-- Input for search query -->
+    <input type="text" id="query" placeholder="Enter your query">
+    <button onclick="search()">Search</button>
+    
+    <!-- Results Section -->
+    <h2>Top 5 Documents:</h2>
+    <ul id="results"></ul>
+
+    <!-- Canvas for the Chart -->
+    <canvas id="similarityChart" width="600" height="400"></canvas>
+
+    <script>
+        // Function to search for the query
+        function search() {
+            const query = document.getElementById('query').value;
+            fetch('/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultList = document.getElementById('results');
+                resultList.innerHTML = ''; // Clear previous results
+                data.forEach((doc, index) => {
+                    let li = document.createElement('li');
+                    li.innerHTML = `
+                        <p><strong>Similarity:</strong> ${doc.similarity.toFixed(3)}</p>
+                        <p><strong>Document:</strong> ${doc.document.substring(0, 1000)}...</p>
+                    `;
+                    resultList.appendChild(li);
+                });
+                drawChart(data); // Draw chart with the data
+            });
+        }
+
+        // Function to draw chart using Chart.js
+        function drawChart(data) {
+            const ctx = document.getElementById('similarityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map((_, index) => `Doc ${index + 1}`),
+                    datasets: [{
+                        label: 'Cosine Similarity',
+                        data: data.map(doc => doc.similarity),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
