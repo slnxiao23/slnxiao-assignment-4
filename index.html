@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,30 +149,36 @@
             });
         }
 
-        // Function to draw chart using Chart.js
-        function drawChart(data) {
-            const ctx = document.getElementById('similarityChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.map((_, index) => `Doc ${index + 1}`),
-                    datasets: [{
-                        label: 'Cosine Similarity',
-                        data: data.map(doc => doc.similarity),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+       
+let chartInstance = null;
+function drawChart(data) {
+    const ctx = document.getElementById('similarityChart').getContext('2d');
+
+    // Check if there's an existing chart instance and destroy it before creating a new one
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    // Create a new chart instance
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(doc => `Doc ${doc.doc_id}`),
+            datasets: [{
+                label: 'Cosine Similarity',
+                data: data.map(doc => doc.similarity),
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
         }
+    });
+    }
     </script>
 </body>
 </html>
